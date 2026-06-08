@@ -255,7 +255,7 @@ def pagina_inicio():
 def pagina_predicciones():
     st.header("📝 Ingresar mis predicciones")
     st.info("💡 Ingresa el marcador que predices para cada partido. Puedes volver a guardar para actualizar tus predicciones.")
-    nombre = st.text_input("Tu nombre completo", placeholder="Ej: Juan Pérez")
+    nombre = st.text_input("Tus dos apellidos", placeholder="Ej: García López")
     ahora = datetime.now()
     if ahora > FECHA_LIMITE:
         st.error("⛔ El plazo para ingresar predicciones cerró el 11 de junio a medianoche.")
@@ -295,9 +295,10 @@ def pagina_predicciones():
                 sufijo = " ✅" if ya_jugado else ""
 
                 # Diseño amigable para móvil
-                st.markdown(
-                    f"<div style='text-align:center;color:#888;font-size:0.8rem;margin-bottom:4px'>{partido['fecha']}{sufijo}</div>",
-                    unsafe_allow_html=True)
+                if sufijo:
+                    st.markdown(
+                        f"<div style='text-align:center;color:green;font-size:0.8rem;margin-bottom:4px'>{sufijo}</div>",
+                        unsafe_allow_html=True)
                 c1, c2, c3, c4, c5 = st.columns([3, 2, 1, 2, 3])
                 with c1:
                     st.markdown(f"<div style='text-align:center;font-weight:700;font-size:0.95rem;padding-top:8px'>{partido['local']}</div>", unsafe_allow_html=True)
