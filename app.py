@@ -17,7 +17,8 @@ from datos_mundial import GRUPOS, PARTIDOS, calcular_puntos
 # ──────────────────────────────────────────────
 # CONFIGURACIÓN
 # ──────────────────────────────────────────────
-CLAVE_ADMIN = "mundial2026admin"   # ← Cambia esta contraseña
+CLAVE_ADMIN = "mundial2026admin"
+FECHA_LIMITE = datetime(2026, 6, 11, 3, 0)  # 11 Jun 2026 a las 3am UTC = medianoche Ecuador
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -138,14 +139,15 @@ def guardar_prediccion(nombre: str, predicciones: dict):
             break
     fila_nueva = {"nombre": nombre.strip(), "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}
     fila_nueva.update({f"p_{pid}": f"{v['local']}-{v['visita']}" for pid, v in predicciones.items()})
+    encabezados = hoja.row_values(1)
+    if not encabezados:
+        hoja.append_row(list(fila_nueva.keys()))
+        encabezados = list(fila_nueva.keys())
+    valores = [fila_nueva.get(col, "") for col in encabezados]
     if fila_existente:
-        hoja.update(f"A{fila_existente}", [list(fila_nueva.values())])
+        hoja.update(f"A{fila_existente}", [valores])
     else:
-        encabezados = hoja.row_values(1)
-        if not encabezados:
-            encabezados = list(fila_nueva.keys())
-            hoja.append_row(encabezados)
-        hoja.append_row(list(fila_nueva.values()))
+        hoja.append_row(valores)
     cargar_predicciones.clear()
     return True
 
@@ -249,6 +251,12 @@ def pagina_predicciones():
     st.header("📝 Ingresar mis predicciones")
     st.info("💡 Ingresa el marcador que predices para cada partido. Puedes volver a guardar para actualizar tus predicciones.")
     nombre = st.text_input("Tu nombre completo", placeholder="Ej: Juan Pérez")
+    ahora = datetime.now()
+    if ahora > FECHA_LIMITE:
+        st.error("⛔ El plazo para ingresar predicciones cerró el 11 de junio a medianoche.")
+        st.info("Puedes ver la tabla de posiciones en el menú lateral.")
+        return
+
     if not nombre:
         st.warning("⬆️ Escribe tu nombre para continuar.")
         return
