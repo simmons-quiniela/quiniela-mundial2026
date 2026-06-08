@@ -482,6 +482,136 @@ def pagina_admin():
                 mime="text/csv",
             )
 
+
+# ──────────────────────────────────────────────
+# PÁGINA: PRONÓSTICO FINAL (4 PRIMEROS LUGARES)
+# ──────────────────────────────────────────────
+TODOS_LOS_PAISES = sorted([
+    equipo for equipos in GRUPOS.values() for equipo in equipos
+])
+
+PUNTOS_PODIO = {1: 6, 2: 4, 3: 2, 4: 1}
+
+def guardar_podio(nombre: str, podio: dict):
+    hoja = obtener_hoja("podio")
+    if not hoja:
+        return False
+    nombre_limpio = nombre.strip().lower()
+    fila_nueva = {
+        "nombre": nombre.strip(),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "1ero": podio.get("1ero", ""),
+        "2do": podio.get("2do", ""),
+        "3ero": podio.get("3ero", ""),
+        "4to": podio.get("4to", ""),
+    }
+    encabezados = hoja.row_values(1)
+    if not encabezados:
+        hoja.append_row(list(fila_nueva.keys()))
+        hoja.append_row(list(fila_nueva.values()))
+        return True
+    try:
+        todos = hoja.get_all_values()
+        fila_existente = None
+        for i, fila in enumerate(todos[1:], start=2):
+            if fila and fila[0].strip().lower() == nombre_limpio:
+                fila_existente = i
+                break
+    except Exception:
+        fila_existente = None
+    valores = [fila_nueva.get(col, "") for col in encabezados]
+    if fila_existente:
+        hoja.update(f"A{fila_existente}", [valores])
+    else:
+        hoja.append_row(valores)
+    return True
+
+@st.cache_data(ttl=60)
+def cargar_podios():
+    hoja = obtener_hoja("podio")
+    if not hoja:
+        return pd.DataFrame()
+    datos = hoja.get_all_records()
+    return pd.DataFrame(datos) if datos else pd.DataFrame()
+
+def pagina_podio():
+    st.header("🏅 Pronóstico Final — 4 Primeros Lugares")
+    st.info("¿Quién crees que ganará el Mundial? Elige los 4 primeros lugares. No se necesitan marcadores, solo países.")
+
+    ahora = datetime.now()
+    if ahora > FECHA_LIMITE:
+        st.error("⛔ El plazo para ingresar pronósticos cerró el 11 de junio.")
+        st.info("Puedes ver el podio en la tabla de posiciones.")
+        return
+
+    nombre = st.text_input("Tus dos apellidos", placeholder="Ej: García López", key="nombre_podio")
+    if not nombre:
+        st.warning("⬆️ Escribe tus apellidos para continuar.")
+        return
+
+    # Cargar podio actual si existe
+    df_podios = cargar_podios()
+    podio_actual = {}
+    if not df_podios.empty:
+        fila = df_podios[df_podios["nombre"].str.strip().str.lower() == nombre.strip().lower()]
+        if not fila.empty:
+            st.success("✅ Ya tienes un pronóstico guardado. Puedes modificarlo.")
+            podio_actual = fila.iloc[0].to_dict()
+
+    st.divider()
+
+    medallas = {"1ero": "🥇 Campeón", "2do": "🥈 Subcampeón", "3ero": "🥉 Tercer lugar", "4to": "4️⃣ Cuarto lugar"}
+    puntos_info = {"1ero": 6, "2do": 4, "3ero": 2, "4to": 1}
+    selecciones = {}
+    paises_seleccionados = []
+
+    for pos, label in medallas.items():
+        default = podio_actual.get(pos, "")
+        opciones = ["— Elige un país —"] + [p for p in TODOS_LOS_PAISES if p not in paises_seleccionados or p == default]
+        idx = opciones.index(default) if default in opciones else 0
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown(f"<div style='font-size:1.5rem;text-align:center;padding-top:8px'>{label.split()[0]}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align:center;font-size:0.75rem;color:#888'>{puntos_info[pos]} pts si acierta</div>", unsafe_allow_html=True)
+        with col2:
+            sel = st.selectbox(label, opciones, index=idx, key=f"podio_{pos}", label_visibility="collapsed")
+        selecciones[pos] = sel if sel != "— Elige un país —" else ""
+        if selecciones[pos]:
+            paises_seleccionados.append(selecciones[pos])
+
+    st.divider()
+
+    if st.button("💾 Guardar mi pronóstico final", type="primary", use_container_width=True):
+        if not all(selecciones.values()):
+            st.warning("⚠️ Debes elegir los 4 países antes de guardar.")
+        elif len(set(selecciones.values())) < 4:
+            st.warning("⚠️ No puedes repetir países.")
+        else:
+            with st.spinner("Guardando..."):
+                ok = guardar_podio(nombre, selecciones)
+            if ok:
+                st.success(f"✅ Pronóstico guardado para **{nombre}**")
+                st.balloons()
+                cargar_podios.clear()
+            else:
+                st.error("Error al guardar.")
+
+    # Mostrar podios de todos
+    st.divider()
+    st.subheader("👀 Pronósticos de todos")
+    if st.button("🔄 Actualizar"):
+        cargar_podios.clear()
+        st.rerun()
+    df = cargar_podios()
+    if not df.empty:
+        cols_mostrar = ["nombre", "1ero", "2do", "3ero", "4to"]
+        cols_ok = [c for c in cols_mostrar if c in df.columns]
+        df_show = df[cols_ok].copy()
+        df_show.columns = ["Apellidos", "🥇 Campeón", "🥈 Subcampeón", "🥉 3er lugar", "4️⃣ 4to lugar"][:len(cols_ok)]
+        st.dataframe(df_show, use_container_width=True)
+    else:
+        st.info("Aún no hay pronósticos guardados.")
+
 # ──────────────────────────────────────────────
 # NAVEGACIÓN PRINCIPAL
 # ──────────────────────────────────────────────
@@ -493,16 +623,18 @@ def main():
         st.divider()
         pagina = st.radio(
             "Navegar",
-            ["🏠 Inicio", "📝 Mis predicciones", "🏆 Tabla de posiciones", "🔧 Admin"],
+            ["🏠 Inicio", "📝 Mis predicciones", "🏅 Pronóstico final", "🏆 Tabla de posiciones", "🔧 Admin"],
             label_visibility="collapsed",
         )
         st.divider()
-        st.caption("⭐ Exacto = 3pts\n✅ Ganador = 1pt\n❌ Fallo = 0pts")
+        st.caption("⭐ Exacto = 3pts\n✅ Ganador = 1pt\n❌ Fallo = 0pts\n\n🥇 Campeón = 6pts\n🥈 Subcampeón = 4pts\n🥉 3ero = 2pts\n4️⃣ 4to = 1pt")
 
     if pagina == "🏠 Inicio":
         pagina_inicio()
     elif pagina == "📝 Mis predicciones":
         pagina_predicciones()
+    elif pagina == "🏅 Pronóstico final":
+        pagina_podio()
     elif pagina == "🏆 Tabla de posiciones":
         pagina_tabla()
     elif pagina == "🔧 Admin":
