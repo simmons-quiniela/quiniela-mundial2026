@@ -131,18 +131,23 @@ def guardar_prediccion(nombre: str, predicciones: dict):
     if not hoja:
         return False
     nombre_limpio = nombre.strip().lower()
-    datos = hoja.get_all_records()
-    fila_existente = None
-    for i, fila in enumerate(datos, start=2):
-        if fila.get("nombre", "").strip().lower() == nombre_limpio:
-            fila_existente = i
-            break
     fila_nueva = {"nombre": nombre.strip(), "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}
     fila_nueva.update({f"p_{pid}": f"{v['local']}-{v['visita']}" for pid, v in predicciones.items()})
     encabezados = hoja.row_values(1)
     if not encabezados:
         hoja.append_row(list(fila_nueva.keys()))
-        encabezados = list(fila_nueva.keys())
+        hoja.append_row(list(fila_nueva.values()))
+        cargar_predicciones.clear()
+        return True
+    try:
+        todos = hoja.get_all_values()
+        fila_existente = None
+        for i, fila in enumerate(todos[1:], start=2):
+            if fila and fila[0].strip().lower() == nombre_limpio:
+                fila_existente = i
+                break
+    except Exception:
+        fila_existente = None
     valores = [fila_nueva.get(col, "") for col in encabezados]
     if fila_existente:
         hoja.update(f"A{fila_existente}", [valores])
