@@ -286,7 +286,6 @@ def pagina_predicciones():
         with st.expander(f"🏴 Grupo {grupo} — {' · '.join(equipos)}", expanded=(grupo_sel != "Todos")):
             for partido in partidos_grupo:
                 pid = partido["id"]
-                col_izq, col_vs, col_der = st.columns([3, 1, 3])
                 val_actual = pred_actuales.get(f"p_{pid}", "")
                 loc_def = vis_def = 0
                 if re.match(r"^\d+-\d+$", str(val_actual)):
@@ -295,22 +294,23 @@ def pagina_predicciones():
                 ya_jugado = pid in resultados_reales
                 sufijo = " ✅" if ya_jugado else ""
 
-                with col_izq:
-                    st.markdown(f"<div style='text-align:right;font-weight:600;padding-top:6px'>{partido['local']}</div>", unsafe_allow_html=True)
-                with col_vs:
-                    st.markdown(f"<div style='text-align:center;color:#888;padding-top:6px'>{partido['fecha']}{sufijo}</div>", unsafe_allow_html=True)
-                with col_der:
-                    st.markdown(f"<div style='font-weight:600;padding-top:6px'>{partido['visita']}</div>", unsafe_allow_html=True)
-
-                c1, c2, c3 = st.columns([2, 1, 2])
+                # Diseño amigable para móvil
+                st.markdown(
+                    f"<div style='text-align:center;color:#888;font-size:0.8rem;margin-bottom:4px'>{partido['fecha']}{sufijo}</div>",
+                    unsafe_allow_html=True)
+                c1, c2, c3, c4, c5 = st.columns([3, 2, 1, 2, 3])
                 with c1:
+                    st.markdown(f"<div style='text-align:center;font-weight:700;font-size:0.95rem;padding-top:8px'>{partido['local']}</div>", unsafe_allow_html=True)
+                with c2:
                     gl = st.number_input(f"Goles {partido['local']}", min_value=0, max_value=20,
                                          value=loc_def, key=f"loc_{pid}", label_visibility="collapsed")
-                with c2:
-                    st.markdown("<div style='text-align:center;padding-top:6px;font-size:1.2rem'>—</div>", unsafe_allow_html=True)
                 with c3:
+                    st.markdown("<div style='text-align:center;padding-top:8px;font-weight:700'>—</div>", unsafe_allow_html=True)
+                with c4:
                     gv = st.number_input(f"Goles {partido['visita']}", min_value=0, max_value=20,
                                          value=vis_def, key=f"vis_{pid}", label_visibility="collapsed")
+                with c5:
+                    st.markdown(f"<div style='text-align:center;font-weight:700;font-size:0.95rem;padding-top:8px'>{partido['visita']}</div>", unsafe_allow_html=True)
                 predicciones_nuevas[pid] = {"local": gl, "visita": gv}
                 st.divider()
 
