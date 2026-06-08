@@ -487,7 +487,7 @@ def pagina_admin():
 # ──────────────────────────────────────────────
 def main():
     with st.sidebar:
-        st.image("https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/2026_FIFA_World_Cup.svg/200px-2026_FIFA_World_Cup.svg.png", width=120)
+        st.markdown("## ⚽")
         st.title("Mundial 2026")
         st.caption("Quiniela fase de grupos")
         st.divider()
