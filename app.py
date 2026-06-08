@@ -19,6 +19,120 @@ from datos_mundial import GRUPOS, PARTIDOS, calcular_puntos
 # ──────────────────────────────────────────────
 CLAVE_ADMIN = "mundial2026admin"
 FECHA_LIMITE = datetime(2026, 6, 11, 4, 59)  # 11 Jun 2026 04:59 UTC = 23:59 del 10 Jun hora Ecuador
+LISTA_EMPLEADOS = [
+    "ABAD PEREZ",
+    "ADUM PEREZ",
+    "AJILA CALUÑA",
+    "ALVARADO CABEZAS",
+    "ALVAREZ TUTILLO",
+    "AMAGUAYA GUSQUI",
+    "ANCHUNDIA PIGUAVE",
+    "ARROYO SISALIMA",
+    "AVECILLAS CEDEÑO",
+    "BERMEO MOREIRA",
+    "BONILLA GARCIA",
+    "BRAVO CUENTA",
+    "BRIONES CARRIEL",
+    "BUSTAMANTE GUERRERO",
+    "CABEZAS VILLAVICENCIO",
+    "CAICHE GUZMAN",
+    "CALDERON CASTRO",
+    "CALLE MENDOZA",
+    "CALZADA POSSO",
+    "CAMPOZANO ZUÑIGA",
+    "CANDO VILLACRESES",
+    "CANTOS SALAZAR",
+    "CARVALLO PAREDES",
+    "CAÑIZARES MORENO",
+    "CEDEÑO JAMA",
+    "CEDEÑO LOPEZ",
+    "CHAVEZ BAZURTO",
+    "CHAVEZ CAMPOVERDE",
+    "CHAVEZ ESCOBAR",
+    "CHAVEZ RODRIGUEZ",
+    "CHAVEZ VILLAFUERTE",
+    "CHONILLO RAMIREZ",
+    "COROZO VERNAZA",
+    "CRUZ CAMPOVERDE",
+    "CRUZ PEÑA",
+    "CRUZ SUAREZ",
+    "DEL PEZO CATUTO",
+    "DELGADO HERNANDEZ",
+    "DEMERA LUCAS",
+    "DIAZ INFANTE",
+    "ECHEVERRIA RANGEL",
+    "ESCALANTE LINO",
+    "FLORES PINELA",
+    "GALARZA PIHUAVE",
+    "GARCIA REYES",
+    "GARZON BURBANO",
+    "GELLIBERT MORA",
+    "GONZALEZ BORBOR",
+    "GONZALEZ CUESTA",
+    "GONZALEZ RIVERA",
+    "GUACARAN BELLO",
+    "GUARANDA JIMENEZ",
+    "GUERRA ALAVA",
+    "GUERRERO PENAFIEL",
+    "LARREINA CONDE",
+    "LOPEZ SALAS",
+    "LUNA ZURITA",
+    "MAIGUA REINOSO",
+    "MALDONADO MONTOYA",
+    "MARTILLO GOMEZ",
+    "MERCHAN CASTILLO",
+    "MORA SALAS",
+    "MOREIRA GARCIA",
+    "MUÑOZ PIN",
+    "NUÑEZ MORAN",
+    "OLLAGUE OLLAGUE",
+    "PAREDES LOZANO",
+    "PEREZ DIAZ",
+    "PEÑA VILLACIS",
+    "PICON ANTEPARA",
+    "PIEDRA MERA",
+    "PLUAS ANCHUNDIA",
+    "PONCE PINCAY",
+    "PONGUILLO ZAMBRANO",
+    "PRECIADO ESCOBAR",
+    "QUINDE ARIAS",
+    "QUIÑONEZ PIZA",
+    "REYES BRAVO",
+    "REYES GARRIDO",
+    "RICAURTE PEÑAFIEL",
+    "RIZZO PERLAZA",
+    "RODRIGUEZ GOMEZ",
+    "RODRIGUEZ SUAREZ",
+    "RODRIGUEZ VILLAMARIN",
+    "RODRIGUEZ YAGUAL",
+    "ROHA OCHOA",
+    "ROMERO MORENO",
+    "ROSERO VALENCIA",
+    "RUIZ VERA",
+    "SAENZ ZURITA",
+    "SANCHEZ PIGUAVE",
+    "SANCHEZ SUAREZ",
+    "SANTOS QUINDE",
+    "SILVA URGILES",
+    "SINCHE GUZÑAY",
+    "SORIA GOMEZ",
+    "SUAREZ PERERO",
+    "TIPAN SALAZAR",
+    "VACA SILVA",
+    "VALENCIA NAZARENO",
+    "VARGAS TOVAR",
+    "VASQUEZ ARIAS",
+    "VERA VERA",
+    "VILA MORANTE",
+    "VILLAVICENCIO HOLGUIN",
+    "VILLEGAS ITURRALDE",
+    "VIVAS MENDOZA",
+    "YOZA JIMENEZ",
+    "ZAMBRANO CEREZO",
+    "ZAMBRANO MERELLO",
+    "ZAMBRANO TELLO",
+]
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -255,15 +369,15 @@ def pagina_inicio():
 def pagina_predicciones():
     st.header("📝 Ingresar mis predicciones")
     st.info("💡 Ingresa el marcador que predices para cada partido. Puedes volver a guardar para actualizar tus predicciones.")
-    nombre = st.text_input("Tus dos apellidos", placeholder="Ej: García López")
+    nombre = st.selectbox("Selecciona tus apellidos", ["— Selecciona —"] + LISTA_EMPLEADOS)
     ahora = datetime.now()
     if ahora > FECHA_LIMITE:
         st.error("⛔ El plazo para ingresar predicciones cerró el 11 de junio a medianoche.")
         st.info("Puedes ver la tabla de posiciones en el menú lateral.")
         return
 
-    if not nombre:
-        st.warning("⬆️ Escribe tu nombre para continuar.")
+    if nombre == "— Selecciona —":
+        st.warning("⬆️ Selecciona tu nombre para continuar.")
         return
 
     resultados_reales = cargar_resultados()
@@ -544,9 +658,9 @@ def pagina_podio():
         st.info("Puedes ver el podio en la tabla de posiciones.")
         return
 
-    nombre = st.text_input("Tus dos apellidos", placeholder="Ej: García López", key="nombre_podio")
-    if not nombre:
-        st.warning("⬆️ Escribe tus apellidos para continuar.")
+    nombre = st.selectbox("Selecciona tus apellidos", ["— Selecciona —"] + LISTA_EMPLEADOS, key="nombre_podio")
+    if nombre == "— Selecciona —":
+        st.warning("⬆️ Selecciona tu nombre para continuar.")
         return
 
     # Cargar podio actual si existe
