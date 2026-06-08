@@ -18,7 +18,7 @@ from datos_mundial import GRUPOS, PARTIDOS, calcular_puntos
 # CONFIGURACIÓN
 # ──────────────────────────────────────────────
 CLAVE_ADMIN = "mundial2026admin"
-FECHA_LIMITE = datetime(2026, 6, 11, 3, 0)  # 11 Jun 2026 a las 3am UTC = medianoche Ecuador
+FECHA_LIMITE = datetime(2026, 6, 11, 4, 59)  # 11 Jun 2026 04:59 UTC = 23:59 del 10 Jun hora Ecuador
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
